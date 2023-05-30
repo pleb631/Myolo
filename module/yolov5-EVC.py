@@ -1,6 +1,8 @@
 import torch.nn.functional as F
 from functools import partial
 from timm.models.layers import DropPath, trunc_normal_
+import torch
+from torch import nn
 # LVC
 class Encoding(nn.Module):
     def __init__(self, in_channels, num_codes):
@@ -263,9 +265,3 @@ class EVCBlock(nn.Module):
         x = torch.cat((x_lvc, x_lmlp), dim=1)
         x = self.cnv1(x)
         return x
-
-
-
-elif m is EVCBlock:
-    c2 = ch[f]
-    args = [c2, c2]

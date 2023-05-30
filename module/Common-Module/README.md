@@ -30,3 +30,6 @@
 - **CAM**  
     [Context Aaugmentation And Feature Refinement Network For tiny Object Detection](https://openreview.net/pdf?id=q2ZaVU6bEsT)  
     关键词：扩大感受野,空洞卷积  
+- **CA**  
+    [Learning to Aggregate Multi-Scale Context for Instance Segmentation in Remote Sensing Images](https://arxiv.org/abs/2111.11057)
+    关键词:近似注意力机制
