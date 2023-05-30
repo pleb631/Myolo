@@ -14,6 +14,10 @@
     ![2023-05-30-14-27-35](https://cdn.jsdelivr.net/gh/pleb631/ImgManager@main/img/2023-05-30-14-27-35.png)  
 - simSPPF  
     出自yolov6,相对SPPF，激活函数由SILU改为RELU.  
+
+- ASPP  
+    [Rethinking Atrous Convolution for Semantic Image Segmentation](https://arxiv.org/abs/1706.05587)  
+    ![2023-05-30-16-23-24](https://cdn.jsdelivr.net/gh/pleb631/ImgManager@main/img/2023-05-30-16-23-24.png)
 - RFB  
     [Receptive Field Block Net for Accurate and Fast Object Detection](https://arxiv.org/abs/1711.07767)  
     ![2023-05-30-15-06-09](https://cdn.jsdelivr.net/gh/pleb631/ImgManager@main/img/2023-05-30-15-06-09.png)  
