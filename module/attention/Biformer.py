@@ -105,7 +105,7 @@ class QKVLinear(nn.Module):
         # q, k, v = self.qkv(x).split([self.qk_dim, self.qk_dim, self.dim], dim=-1)
         # return q, k, v
 
-class BiLevelRoutingAttention(nn.Module):
+class Biformer(nn.Module):
     """
     n_win: number of windows in one side (so the actual number of windows is n_win*n_win)
     kv_per_win: for kv_downsample_mode='ada_xxxpool' only, number of key/values per window. Similar to n_win, the actual number is kv_per_win*kv_per_win.
@@ -115,7 +115,7 @@ class BiLevelRoutingAttention(nn.Module):
     diff_routing: wether to set routing differentiable
     soft_routing: wether to multiply soft routing weights 
     """
-    def __init__(self, dim, n_win=7, num_heads=8, qk_dim=None, qk_scale=None,
+    def __init__(self, dim=512, n_win=7, num_heads=8, qk_dim=None, qk_scale=None,
                  kv_per_win=4, kv_downsample_ratio=4, kv_downsample_kernel=None, kv_downsample_mode='identity',
                  topk=4, param_attention="qkvo", param_routing=False, diff_routing=False, soft_routing=False, side_dwconv=3,
                  auto_pad=True):

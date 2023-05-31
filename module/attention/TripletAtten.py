@@ -40,9 +40,9 @@ class AttentionGate(nn.Module):
         return x * scale
 
 
-class TripletAttention(nn.Module):
+class TripletAtten(nn.Module):
     def __init__(self, no_spatial=False):
-        super(TripletAttention, self).__init__()
+        super(TripletAtten, self).__init__()
         self.cw = AttentionGate()
         self.hc = AttentionGate()
         self.no_spatial = no_spatial

@@ -45,7 +45,7 @@ class SplitAttention(nn.Module):
         return out
 
 
-class S2Attention(nn.Module):
+class S2_MLPv2(nn.Module):
 
     def __init__(self, channels=512):
         super().__init__()
@@ -67,8 +67,3 @@ class S2Attention(nn.Module):
         return x
 
 
-if __name__ == '__main__':
-    input = torch.randn(50, 512, 7, 7)
-    s2att = S2Attention(channels=512)
-    output = s2att(input)
-    print(output.shape)

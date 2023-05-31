@@ -1,9 +1,9 @@
 import torch.nn as nn
 import torch
  
-class GAM_Attention(nn.Module):
-    def __init__(self, in_channels, rate=4):
-        super(GAM_Attention, self).__init__()
+class GAM(nn.Module):
+    def __init__(self, in_channels=512, rate=4):
+        super(GAM, self).__init__()
  
         self.channel_attention = nn.Sequential(
             nn.Linear(in_channels, int(in_channels / rate)),
@@ -32,9 +32,3 @@ class GAM_Attention(nn.Module):
  
         return out
  
-if __name__ == '__main__':
-    x = torch.randn(1, 64, 20, 20)
-    b, c, h, w = x.shape
-    net = GAM_Attention(in_channels=c)
-    y = net(x)
-    print(y.size())

@@ -3,7 +3,7 @@ import torch
 from torch import nn
 from torch.nn import init
 
-class SpatialGroupEnhance(nn.Module):
+class SGE(nn.Module):
     def __init__(self, groups=8):
         super().__init__()
         self.groups=groups
@@ -45,9 +45,3 @@ class SpatialGroupEnhance(nn.Module):
         x=x.view(b,c,h,w)
         return x 
 
-
-if __name__ == '__main__':
-    input=torch.randn(50,512,7,7)
-    sge = SpatialGroupEnhance(groups=8)
-    output=sge(input)
-    print(output.shape)

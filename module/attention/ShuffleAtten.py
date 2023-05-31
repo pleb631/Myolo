@@ -1,11 +1,9 @@
-import numpy as np
 import torch
 from torch import nn
-from torch.nn import init
 from torch.nn.parameter import Parameter
 
 
-class ShuffleAttention(nn.Module):
+class ShuffleAtten(nn.Module):
 
     def __init__(self, channel=512, reduction=16, G=8):
         super().__init__()
@@ -19,19 +17,6 @@ class ShuffleAttention(nn.Module):
         self.sbias = Parameter(torch.ones(1, channel // (2 * G), 1, 1))
         self.sigmoid = nn.Sigmoid()
 
-    def init_weights(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                init.kaiming_normal_(m.weight, mode='fan_out')
-                if m.bias is not None:
-                    init.constant_(m.bias, 0)
-            elif isinstance(m, nn.BatchNorm2d):
-                init.constant_(m.weight, 1)
-                init.constant_(m.bias, 0)
-            elif isinstance(m, nn.Linear):
-                init.normal_(m.weight, std=0.001)
-                if m.bias is not None:
-                    init.constant_(m.bias, 0)
 
     @staticmethod
     def channel_shuffle(x, groups):
@@ -71,8 +56,3 @@ class ShuffleAttention(nn.Module):
         return out
 
 
-if __name__ == '__main__':
-    input = torch.randn(50, 512, 7, 7)
-    se = ShuffleAttention(channel=512, G=8)
-    output = se(input)
-    print(output.shape)

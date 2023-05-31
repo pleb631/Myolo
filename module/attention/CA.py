@@ -21,9 +21,9 @@ class h_swish(nn.Module):
         return x * self.sigmoid(x)
 
 
-class CoordAtt(nn.Module):
-    def __init__(self, inp, reduction=32):
-        super(CoordAtt, self).__init__()
+class CA(nn.Module):
+    def __init__(self, inp=512, reduction=32):
+        super(CA, self).__init__()
         self.pool_h = nn.AdaptiveAvgPool2d((None, 1))
         self.pool_w = nn.AdaptiveAvgPool2d((1, None))
 
@@ -57,9 +57,3 @@ class CoordAtt(nn.Module):
         out = identity * a_w * a_h
 
         return out
-
-if __name__ == '__main__':
-    input = torch.randn(50, 512, 7, 7)
-    pna = CoordAtt(inp=512)
-    output = pna(input)
-    print(output.shape)
