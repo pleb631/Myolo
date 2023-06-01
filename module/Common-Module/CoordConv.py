@@ -55,7 +55,7 @@ class CoordConv(nn.Module):
         x = self.conv(x)
         return x
 
-"""范例
+"""参考范例
 # YOLOv5 v6.0 backbone
 backbone:
   # [from, number, module, args]

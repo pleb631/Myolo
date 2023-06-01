@@ -11,12 +11,13 @@
 - **ODConv**  
     [OMNI-DIMENSIONAL DYNAMIC CONVOLUTION](https://openreview.net/pdf?id=DmpCfq6Mg39)  
     ![2023-05-24-14-30-29](https://cdn.jsdelivr.net/gh/pleb631/ImgManager@main/img/2023-05-24-14-30-29.png)  
-    关键词:动态卷积  
+    关键词:动态卷积,backbone-ODConv  
     对于卷积核： (1) 在空间位置的卷积参数（每个滤波器）赋予权重；(2) 为每个卷积滤波器输入通道分配不同的注意标量；(3)将不同的注意标量分配给卷积滤波器；(4)给整个卷积核分配一个注意标量。原则上，这四种类型的注意是互补的，并以位置、通道、滤波器和核的顺序逐步将它们乘以卷积核，使得卷积操作为不同的输入x的所有空间位置、所有输入通道、所有过滤器和所有内核，为捕获丰富的上下文线索提供了性能保证  
 - **PConv**  
     [Run, Don’t Walk: Chasing Higher FLOPS for Faster Neural Networks](https://arxiv.org/pdf/2303.03667.pdf)  
     ![2023-05-24-14-48-36](https://cdn.jsdelivr.net/gh/pleb631/ImgManager@main/img/2023-05-24-14-48-36.png)  
-    关键词:轻量化  
+
+    关键词:轻量化,backbone-fasternet  
     它只需在输入通道的一部分上应用常规Conv进行空间特征提取，并保持其余通道不变。对于连续或规则的内存访问，将第一个或最后一个连续的通道分组视为整个特征图的代表进行计算。之后需要加上1x1卷积或DW卷积进行全局计算  
 - **DCNv2**  
     [Deformable ConvNets v2: More Deformable, Better Results](https://arxiv.org/abs/1811.11168)  
@@ -27,9 +28,19 @@
 - **CARAFE**  
     [CARAFE: Content-Aware ReAssembly of FEatures](https://arxiv.org/abs/1905.02188)  
     关键词:上采样,动态卷积  
-- **CAM**  
-    [Context Aaugmentation And Feature Refinement Network For tiny Object Detection](https://openreview.net/pdf?id=q2ZaVU6bEsT)  
-    关键词：扩大感受野,空洞卷积  
-- **CA**  
-    [Learning to Aggregate Multi-Scale Context for Instance Segmentation in Remote Sensing Images](https://arxiv.org/abs/2111.11057)
-    关键词:近似注意力机制
+- **CEM_FRM**  
+    [Context Augmentation And Feature Refinement Network For tiny Object Detection](https://openreview.net/pdf?id=q2ZaVU6bEsT)
+    ![2023-06-01-09-46-58](https://cdn.jsdelivr.net/gh/pleb631/ImgManager@main/img/2023-06-01-09-46-58.png)  
+    ![2023-06-01-09-48-42](https://cdn.jsdelivr.net/gh/pleb631/ImgManager@main/img/2023-06-01-09-48-42.png)
+    关键词：空洞卷积,多层融合  
+
+- **EVC**  
+    [Centralized Feature Pyramid for Object Detection](https://arxiv.org/pdf/2210.02093.pdf)
+    ![2023-06-01-13-03-33](https://cdn.jsdelivr.net/gh/pleb631/ImgManager@main/img/2023-06-01-13-03-33.png)
+    关键词:长短距离特征
+- **GSConv**
+    [Slim-neck by GSConv: A better design paradigm of detector architectures for autonomous vehicles](https://arxiv.org/ftp/arxiv/papers/2206/2206.02424.pdf)
+    ![2023-06-01-13-49-37](https://cdn.jsdelivr.net/gh/pleb631/ImgManager@main/img/2023-06-01-13-49-37.png)
+    关键词:轻量级
+- **RFAConv**
+    [RFAConv: Innovating Spatial Attention and Standard Convolutional Operation](https://arxiv.org/pdf/2304.03198.pdf)

@@ -5,7 +5,7 @@ import torch
 #from SPPF import SPPF as net
 import time
 
-test_modules = ['TripletAttention']
+test_modules = ['SOCA']
 
 
 for unit in test_modules:
@@ -18,8 +18,8 @@ for unit in test_modules:
     flops, params = clever_format([flops, params], "%.3f")
     print(f'flop:{flops}\nparams:{params}')
     
-    model = model.cuda()
-    input = input.cuda()
+    model = model#.cuda()
+    input = input#.cuda()
     for i in range(100):
         _=model(input)
     

@@ -1,15 +1,10 @@
-import torch
-from torch import nn
-from utils import *
-
-
-class PConv(nn.Module):
-    def __init__(self, dim, ouc, n_div=4, forward='split_cat'):
+from timm.models.layers import DropPath
+class Partial_conv3(nn.Module):
+    def __init__(self, dim, n_div, forward):
         super().__init__()
         self.dim_conv3 = dim // n_div
         self.dim_untouched = dim - self.dim_conv3
         self.partial_conv3 = nn.Conv2d(self.dim_conv3, self.dim_conv3, 3, 1, 1, bias=False)
-        self.conv = Conv(dim, ouc, k=1)
 
         if forward == 'slicing':
             self.forward = self.forward_slicing
@@ -22,7 +17,6 @@ class PConv(nn.Module):
         # only for inference
         x = x.clone()   # !!! Keep the original input intact for the residual connection later
         x[:, :self.dim_conv3, :, :] = self.partial_conv3(x[:, :self.dim_conv3, :, :])
-        x = self.conv(x)
         return x
 
     def forward_split_cat(self, x):
@@ -30,142 +24,67 @@ class PConv(nn.Module):
         x1, x2 = torch.split(x, [self.dim_conv3, self.dim_untouched], dim=1)
         x1 = self.partial_conv3(x1)
         x = torch.cat((x1, x2), 1)
-        x = self.conv(x)
         return x
 
+class Faster_Block(nn.Module):
+    def __init__(self,
+                 inc,
+                 dim,
+                 n_div=4,
+                 mlp_ratio=2,
+                 drop_path=0.1,
+                 layer_scale_init_value=0.0,
+                 pconv_fw_type='split_cat'
+                 ):
+        super().__init__()
+        self.dim = dim
+        self.mlp_ratio = mlp_ratio
+        self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
+        self.n_div = n_div
 
+        mlp_hidden_dim = int(dim * mlp_ratio)
 
+        mlp_layer = [
+            Conv(dim, mlp_hidden_dim, 1),
+            nn.Conv2d(mlp_hidden_dim, dim, 1, bias=False)
+        ]
 
-"""_summary_
-# !!!!!!!!!!!!!!!!!!!!!! yolov7-PConv.yaml
-# yolov7 backbone
-backbone:
-  # [from, number, module, args]
-  [[-1, 1, Conv, [32, 3, 1]],  # 0
-  
-   [-1, 1, Conv, [64, 3, 2]],  # 1-P1/2      
-   [-1, 1, Conv, [64, 3, 1]],
-   
-   [-1, 1, Conv, [128, 3, 2]],  # 3-P2/4  
-   [-1, 1, Conv, [64, 1, 1]],
-   [-2, 1, Conv, [64, 1, 1]],
-   [-1, 1, PConv, [64]],
-   [-1, 1, PConv, [64]],
-   [-1, 1, PConv, [64]],
-   [-1, 1, PConv, [64]],
-   [[-1, -3, -5, -6], 1, Concat, [1]],
-   [-1, 1, Conv, [256, 1, 1]],  # 11
-         
-   [-1, 1, MP, []],
-   [-1, 1, Conv, [128, 1, 1]],
-   [-3, 1, Conv, [128, 1, 1]],
-   [-1, 1, Conv, [128, 3, 2]],
-   [[-1, -3], 1, Concat, [1]],  # 16-P3/8  
-   [-1, 1, Conv, [128, 1, 1]],
-   [-2, 1, Conv, [128, 1, 1]],
-   [-1, 1, PConv, [128]],
-   [-1, 1, PConv, [128]],
-   [-1, 1, PConv, [128]],
-   [-1, 1, PConv, [128]],
-   [[-1, -3, -5, -6], 1, Concat, [1]],
-   [-1, 1, Conv, [512, 1, 1]],  # 24
-         
-   [-1, 1, MP, []],
-   [-1, 1, Conv, [256, 1, 1]],
-   [-3, 1, Conv, [256, 1, 1]],
-   [-1, 1, Conv, [256, 3, 2]],
-   [[-1, -3], 1, Concat, [1]],  # 29-P4/16  
-   [-1, 1, Conv, [256, 1, 1]],
-   [-2, 1, Conv, [256, 1, 1]],
-   [-1, 1, PConv, [256]],
-   [-1, 1, PConv, [256]],
-   [-1, 1, PConv, [256]],
-   [-1, 1, PConv, [256]],
-   [[-1, -3, -5, -6], 1, Concat, [1]],
-   [-1, 1, Conv, [1024, 1, 1]],  # 37
-         
-   [-1, 1, MP, []],
-   [-1, 1, Conv, [512, 1, 1]],
-   [-3, 1, Conv, [512, 1, 1]],
-   [-1, 1, Conv, [512, 3, 2]],
-   [[-1, -3], 1, Concat, [1]],  # 42-P5/32  
-   [-1, 1, Conv, [256, 1, 1]],
-   [-2, 1, Conv, [256, 1, 1]],
-   [-1, 1, PConv, [256]],
-   [-1, 1, PConv, [256]],
-   [-1, 1, PConv, [256]],
-   [-1, 1, PConv, [256]],
-   [[-1, -3, -5, -6], 1, Concat, [1]],
-   [-1, 1, Conv, [1024, 1, 1]],  # 50
-  ]
+        self.mlp = nn.Sequential(*mlp_layer)
 
-# yolov7 head
-head:
-  [[-1, 1, SPPCSPC, [512]], # 51
-  
-   [-1, 1, Conv, [256, 1, 1]],
-   [-1, 1, nn.Upsample, [None, 2, 'nearest']],
-   [37, 1, Conv, [256, 1, 1]], # route backbone P4
-   [[-1, -2], 1, Concat, [1]],
-   
-   [-1, 1, Conv, [256, 1, 1]],
-   [-2, 1, Conv, [256, 1, 1]],
-   [-1, 1, Conv, [128, 3, 1]],
-   [-1, 1, Conv, [128, 3, 1]],
-   [-1, 1, Conv, [128, 3, 1]],
-   [-1, 1, Conv, [128, 3, 1]],
-   [[-1, -2, -3, -4, -5, -6], 1, Concat, [1]],
-   [-1, 1, Conv, [256, 1, 1]], # 63
-   
-   [-1, 1, Conv, [128, 1, 1]],
-   [-1, 1, nn.Upsample, [None, 2, 'nearest']],
-   [24, 1, Conv, [128, 1, 1]], # route backbone P3
-   [[-1, -2], 1, Concat, [1]],
-   
-   [-1, 1, Conv, [128, 1, 1]],
-   [-2, 1, Conv, [128, 1, 1]],
-   [-1, 1, Conv, [64, 3, 1]],
-   [-1, 1, Conv, [64, 3, 1]],
-   [-1, 1, Conv, [64, 3, 1]],
-   [-1, 1, Conv, [64, 3, 1]],
-   [[-1, -2, -3, -4, -5, -6], 1, Concat, [1]],
-   [-1, 1, Conv, [128, 1, 1]], # 75
-      
-   [-1, 1, MP, []],
-   [-1, 1, Conv, [128, 1, 1]],
-   [-3, 1, Conv, [128, 1, 1]],
-   [-1, 1, Conv, [128, 3, 2]],
-   [[-1, -3, 63], 1, Concat, [1]],
-   
-   [-1, 1, Conv, [256, 1, 1]],
-   [-2, 1, Conv, [256, 1, 1]],
-   [-1, 1, Conv, [128, 3, 1]],
-   [-1, 1, Conv, [128, 3, 1]],
-   [-1, 1, Conv, [128, 3, 1]],
-   [-1, 1, Conv, [128, 3, 1]],
-   [[-1, -2, -3, -4, -5, -6], 1, Concat, [1]],
-   [-1, 1, Conv, [256, 1, 1]], # 88
-      
-   [-1, 1, MP, []],
-   [-1, 1, Conv, [256, 1, 1]],
-   [-3, 1, Conv, [256, 1, 1]],
-   [-1, 1, Conv, [256, 3, 2]],
-   [[-1, -3, 51], 1, Concat, [1]],
-   
-   [-1, 1, Conv, [512, 1, 1]],
-   [-2, 1, Conv, [512, 1, 1]],
-   [-1, 1, Conv, [256, 3, 1]],
-   [-1, 1, Conv, [256, 3, 1]],
-   [-1, 1, Conv, [256, 3, 1]],
-   [-1, 1, Conv, [256, 3, 1]],
-   [[-1, -2, -3, -4, -5, -6], 1, Concat, [1]],
-   [-1, 1, Conv, [512, 1, 1]], # 101
-   
-   [75, 1, RepConv, [256, 3, 1]],
-   [88, 1, RepConv, [512, 3, 1]],
-   [101, 1, RepConv, [1024, 3, 1]],
+        self.spatial_mixing = Partial_conv3(
+            dim,
+            n_div,
+            pconv_fw_type
+        )
+        
+        self.adjust_channel = None
+        if inc != dim:
+            self.adjust_channel = Conv(inc, dim, 1)
 
-   [[102,103,104], 1, IDetect, [nc, anchors]],   # Detect(P3, P4, P5)
-  ]
-"""
+        if layer_scale_init_value > 0:
+            self.layer_scale = nn.Parameter(layer_scale_init_value * torch.ones((dim)), requires_grad=True)
+            self.forward = self.forward_layer_scale
+        else:
+            self.forward = self.forward
 
+    def forward(self, x):
+        if self.adjust_channel is not None:
+            x = self.adjust_channel(x)
+        shortcut = x
+        x = self.spatial_mixing(x)
+        x = shortcut + self.drop_path(self.mlp(x))
+        return x
+
+    def forward_layer_scale(self, x):
+        shortcut = x
+        x = self.spatial_mixing(x)
+        x = shortcut + self.drop_path(
+            self.layer_scale.unsqueeze(-1).unsqueeze(-1) * self.mlp(x))
+        return x
+
+class C3_Faster(C3):
+    # C3 module with cross-convolutions
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        super().__init__(c1, c2, n, shortcut, g, e)
+        c_ = int(c2 * e)
+        self.m = nn.Sequential(*(Faster_Block(c_, c_) for _ in range(n)))
